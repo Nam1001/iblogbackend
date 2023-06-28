@@ -51,7 +51,7 @@ router.delete('/deleteblog/:id',async(req,res)=>{
     try {
         const blog=await Blogs.findById(req.params.id)
         if(!blog) return res.status(401).json({error:"user not found"})
-        blog=await Blogs.findByIdAndDelete(req.params.id)
+        await Blogs.findByIdAndDelete(req.params.id)
         return res.status(200).json({message:"Deleted Successfully"})
     } catch (error) {
          return res.status(500).json({error:"some internal error occured"})
@@ -59,20 +59,34 @@ router.delete('/deleteblog/:id',async(req,res)=>{
 })
 
 
-router.put('/updateblog/:id',async(req,res)=>{
-  try {
-    const {title,description,tag}=req.body
-    let newblog={}
-    newblog.title=title;
-    newblog.description=description;
-    newblog.tag=tag
-    await Blogs.findByIdAndUpdate(req.params.id,{$set:newblog},{new:true})
-      return res.status(200).json({message:"Updated Successfully"})
-  } catch (error) {
-    return res.send(500).json({error:"some internal error occured"})
-    
-  }
-})
+router.put(
+  "/updateblog/:id", async (req, res) => {
+     const {title,description,tag}=req.body  //checking for the validations
+    try {
+      // Assign new values to our notes
+     let newblog={}
+     if(title){
+        newblog.title=title
+     }
+     if(description){
+        newblog.description=description
+     }
+     if(tag){
+        newblog.tag=tag;
+     }
+     // checking for the notes if it exists
+     let blog=await Blogs.findById(req.params.id)
+     if(!blog){
+        return res.status(400).send("not found")
+     }
+     // updating the notes
+    blog=await Blogs.findByIdAndUpdate(req.params.id,{$set:newblog},{new:true});
+    res.json(blog)
+    } catch (error) {
+      console.log(error.message);
+      return res.status(500).send("some internal error occured");
+    }
+  })
 
 
 module.exports=router
